@@ -1,0 +1,67 @@
+id: get-contract-health
+version: "1.0.0"
+name: Get Contract Health Tool
+description: >
+  The cdd_get_contract_health tool returns a comprehensive health report
+  for the entire contract system. It checks for unlinked contracts (no
+  tests), orphaned annotations (tests referencing non-existent contracts),
+  broken refs (contracts pointing to files that don't exist), and
+  validation errors (contracts that don't conform to the schema). This
+  is the "how healthy is my contract coverage?" call. Agents use it
+  proactively or as part of a review workflow.
+
+priority: must
+domain: mcp-tools
+tags: [mcp, health, coverage]
+
+trigger:
+  type: mcp-tool-call
+  tool: cdd_get_contract_health
+
+depends_on:
+  - contract: contract-schema-validation
+    reason: >
+      Health check includes schema validation errors, which requires
+      the same validation logic used during contract loading.
+  - contract: test-annotation-scanning
+    reason: >
+      Health check needs to find all annotations to detect orphaned
+      ones and to count linked tests per contract.
+
+behaviors:
+  - id: report-totals
+    description: >
+      Returns the total number of contracts in the system.
+    constraints:
+      - Count must include contracts with validation errors
+
+  - id: report-unlinked
+    description: >
+      Lists contracts that have zero linked tests.
+    constraints:
+      - Each entry must include the contract id
+      - Contracts with validation errors are still checked for test links
+
+  - id: report-orphaned-annotations
+    description: >
+      Lists test annotations that reference contract ids which do not
+      exist.
+    constraints:
+      - Each entry must include the file path, line number, and the referenced contract id
+      - Must scan all configured test directories
+
+  - id: report-broken-refs
+    description: >
+      Lists contracts with refs pointing to files that do not exist on
+      disk.
+    constraints:
+      - Must check top-level refs, behaviors[].refs, and testing.fixtures
+      - Each entry must include the contract id and the missing file path
+
+  - id: report-validation-errors
+    description: >
+      Lists contracts that fail schema validation.
+    refs:
+      - schema/contract.schema.json
+    constraints:
+      - Each entry must include the contract id and the specific validation failures

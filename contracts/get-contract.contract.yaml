@@ -1,0 +1,44 @@
+id: get-contract
+version: "1.0.0"
+name: Get Contract Tool
+description: >
+  The cdd_get_contract tool retrieves a single contract by id with full
+  detail. When resolve_refs is true, it also includes the file contents
+  of all referenced files (from refs, behaviors[].refs, and
+  testing.fixtures). This is the "give me full context" call that agents
+  use when they need to deeply understand a contract and everything it
+  touches.
+
+priority: must
+domain: mcp-tools
+tags: [mcp, discovery, context]
+
+trigger:
+  type: mcp-tool-call
+  tool: cdd_get_contract
+
+behaviors:
+  - id: return-full-contract
+    description: >
+      Returns the complete contract content parsed from the YAML file.
+    constraints:
+      - All fields present in the YAML must be included in the response
+      - The response format must be the contract YAML parsed to JSON
+
+  - id: resolve-refs
+    description: >
+      When resolve_refs is true, the response includes the file contents
+      of every file referenced in the contract.
+    constraints:
+      - Must resolve refs from top-level refs, behaviors[].refs, and testing.fixtures
+      - Each resolved ref must include the file path and its contents
+      - If a referenced file does not exist, the entry must indicate that the file is missing rather than omitting it silently
+      - Binary files should be reported as present but not have their contents included
+
+  - id: not-found
+    description: >
+      When the requested contract_id does not match any contract, the tool
+      returns a clear error.
+    constraints:
+      - The error must include the requested id
+      - The error must not expose internal file paths beyond the contracts directory

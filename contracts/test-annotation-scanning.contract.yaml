@@ -1,0 +1,57 @@
+id: test-annotation-scanning
+version: "1.0.0"
+name: Test Annotation Scanning
+description: >
+  The MCP server scans test files for fulfills-contract annotations
+  using a configurable regex pattern. This scanning mechanism is used
+  by multiple tools (get_linked_tests, get_contract_health,
+  check_structural, delete_contract). The scanner must correctly parse
+  annotations across different programming languages and comment styles,
+  handle multiple annotations per file, and match the configured pattern
+  exactly.
+
+priority: must
+domain: core
+tags: [testing, annotations, scanning]
+
+depends_on:
+  - contract: config-loading
+    reason: >
+      The test link pattern and test directories come from the
+      configuration.
+
+behaviors:
+  - id: scan-configured-dirs
+    description: >
+      Scans only the directories and file patterns specified in the
+      test_dirs configuration.
+    constraints:
+      - Must respect glob patterns in test_dirs entries
+      - Must not scan files outside the configured directories
+      - Must handle nested directory structures
+
+  - id: match-configured-pattern
+    description: >
+      Uses the test_link_pattern regex from configuration to find
+      annotations.
+    constraints:
+      - The first capture group in the regex must be the contract id
+      - The pattern must be applied line-by-line to each file
+      - Multiple annotations in the same file must all be found
+
+  - id: extract-context
+    description: >
+      For each annotation found, extracts contextual information like
+      the test name from surrounding lines.
+    constraints:
+      - Must attempt to extract the test/function name from the line following the annotation
+      - If no name can be extracted, the test_name field should be null rather than omitted
+      - Must report the exact line number of the annotation comment, not the test function
+
+  - id: handle-comment-styles
+    description: >
+      The annotation can appear in any comment style (// or # or /* */
+      or -- etc). The scanner matches the pattern anywhere in the line.
+    constraints:
+      - The scanner is language-agnostic -- it matches the pattern as a substring of any line
+      - The comment delimiter is not part of the pattern and should not affect matching
