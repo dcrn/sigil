@@ -1,0 +1,78 @@
+id: agent-instructions
+version: "1.0.0"
+name: Agent Instructions on Connection
+description: >
+  When an agent connects to the CDD MCP server, the server must deliver
+  methodology instructions that tell the agent how to work with contracts.
+  The instructions must cover the agent's responsibilities, the required
+  workflow (discover contracts before coding, check affected contracts,
+  respect constraints, annotate tests, propose new contracts), contract
+  priorities, and the boundary between what the server handles and what
+  the agent handles. Without these instructions an agent has access to
+  the tools but no understanding of when or why to call them.
+
+priority: must
+domain: mcp-server
+tags: [mcp, onboarding, methodology]
+
+trigger:
+  type: agent-connection
+  description: An agent establishes a session with the MCP server
+
+refs:
+  - docs/agent-instructions.md
+
+behaviors:
+  - id: deliver-on-connection
+    description: >
+      The server delivers the full methodology instructions to the agent
+      as part of the initial connection response, before the agent makes
+      any tool calls.
+    constraints:
+      - Instructions must be delivered without the agent requesting them
+      - Instructions must be delivered once per session, not on every tool call
+
+  - id: cover-workflow
+    description: >
+      The instructions must describe the three-phase workflow: discover
+      contracts before writing code, respect constraints while writing
+      code, and check health after writing code.
+    constraints:
+      - Must include the specific tool calls for each phase (cdd_list_contracts, cdd_get_affected_contracts, cdd_get_contract, cdd_get_contract_health)
+      - Must instruct the agent to stop and flag violations rather than silently proceeding
+      - Must state that cdd_get_contract and cdd_find_related require a prior cdd_list_contracts or cdd_get_affected_contracts call in the current session
+      - Must state that cdd_update_contract and cdd_delete_contract require a prior cdd_get_contract call for the same contract_id in the current session
+    refs:
+      - docs/agent-instructions.md
+
+  - id: cover-responsibilities
+    description: >
+      The instructions must explain the boundary between server and
+      agent -- the server handles structure and facts, the agent handles
+      semantics and decisions.
+    constraints:
+      - Must state that the server never interprets intent
+      - Must list what the agent is responsible for (judging conflicts, writing tests, proposing contracts, flagging violations)
+
+  - id: cover-priorities
+    description: >
+      The instructions must explain the three contract priority levels
+      and what each means for the agent's behavior.
+    constraints:
+      - Must define must, should, and prefer
+      - Must state that must violations require human approval before proceeding
+
+  - id: cover-test-annotations
+    description: >
+      The instructions must explain how to link tests to contracts using
+      the fulfills-contract annotation pattern.
+    constraints:
+      - Must show the annotation syntax
+      - Must state that annotations reference contract ids, not file paths
+
+notes: >
+  The instructions document lives at docs/agent-instructions.md and is
+  the canonical source. The server should serve its content (or an
+  equivalent rendering) rather than duplicating the text inline. If the
+  instructions document is updated, the server picks up the changes
+  without code changes.

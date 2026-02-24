@@ -1,0 +1,50 @@
+id: get-linked-tests
+version: "1.0.0"
+name: Get Linked Tests Tool
+description: >
+  The cdd_get_linked_tests tool returns all tests linked to a specific
+  contract via fulfills-contract annotations. It scans the configured
+  test directories using the configured test link pattern and returns
+  the file path, line number, and test name (when extractable from
+  context) for each annotation matching the given contract id.
+
+priority: must
+domain: mcp-tools
+tags: [mcp, testing, annotations]
+
+trigger:
+  type: mcp-tool-call
+  tool: cdd_get_linked_tests
+
+depends_on:
+  - contract: config-loading
+    reason: >
+      Uses test_link_pattern and test_dirs from the configuration to know
+      where and how to scan for annotations.
+  - contract: test-annotation-scanning
+    reason: >
+      Relies on the annotation scanning mechanism to find test links.
+
+behaviors:
+  - id: return-matching-annotations
+    description: >
+      Returns all annotations in test files that reference the given
+      contract id.
+    constraints:
+      - Each result must include the file path and line number of the annotation
+      - Each result should include the test name extracted from surrounding context (e.g., the function or describe block name on the next line)
+      - Only annotations in configured test_dirs are scanned
+
+  - id: empty-when-no-tests
+    description: >
+      When no tests are linked to the contract, returns an empty list
+      rather than an error.
+    constraints:
+      - An empty result is not an error condition
+      - The response must clearly indicate zero linked tests
+
+  - id: not-found
+    description: >
+      When the contract_id does not exist, the tool returns a clear error.
+    constraints:
+      - The error must distinguish between "contract exists but has no tests" and "contract does not exist"

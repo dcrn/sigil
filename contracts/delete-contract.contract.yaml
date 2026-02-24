@@ -1,0 +1,64 @@
+id: delete-contract
+version: "1.0.0"
+name: Delete Contract Tool
+description: >
+  The cdd_delete_contract tool removes a contract file from the
+  contracts directory and reports downstream impact. It tells the
+  caller about orphaned test annotations (tests that now reference a
+  non-existent contract) and dependent contracts (contracts that had
+  this one in their depends_on). The tool deletes the file and reports
+  the facts. The agent or human decides how to handle the downstream
+  impact.
+
+priority: must
+domain: mcp-tools
+tags: [mcp, lifecycle, write]
+
+trigger:
+  type: mcp-tool-call
+  tool: cdd_delete_contract
+
+depends_on:
+  - contract: test-annotation-scanning
+    reason: >
+      Needs to find all test annotations referencing this contract
+      to report them as orphaned after deletion.
+
+behaviors:
+  - id: delete-file
+    description: >
+      Removes the contract YAML file from the contracts directory.
+    constraints:
+      - The file must be deleted from disk
+      - The response must include the path of the deleted file
+
+  - id: report-orphaned-tests
+    description: >
+      Returns a list of test annotations that now reference a
+      non-existent contract.
+    constraints:
+      - Each entry must include the file path and line number of the annotation
+      - The list must be complete -- all annotations across all configured test directories
+
+  - id: report-dependent-contracts
+    description: >
+      Returns a list of contracts that had the deleted contract in
+      their depends_on field.
+    constraints:
+      - Each entry must include the dependent contract's id and the reason from the dependency
+      - The dependent contracts are not modified -- the tool only reports them
+
+  - id: require-prior-read
+    description: >
+      Before deleting, the tool verifies that cdd_get_contract was called
+      for this contract_id in the current session. If not, it returns an
+      error instructing the caller to read the contract first.
+    constraints:
+      - The error must name the contract_id and instruct the caller to call cdd_get_contract before retrying
+      - The file must not be deleted when this check fails
+
+  - id: not-found
+    description: >
+      When the contract_id does not exist, the tool returns a clear error.
+    constraints:
+      - The error must include the requested id

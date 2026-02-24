@@ -1,0 +1,53 @@
+id: list-contracts
+version: "1.0.0"
+name: List Contracts Tool
+description: >
+  The cdd_list_contracts tool returns summary information for all contracts
+  in the contracts directory. It supports optional filtering by domain and
+  tags. This is the starting point for any planning session -- agents call
+  it to understand the contract landscape before making changes. The
+  response must be concise enough to fit in an agent's context window even
+  for large contract sets, while including enough information for the agent
+  to decide which contracts to inspect further.
+
+priority: must
+domain: mcp-tools
+tags: [mcp, discovery, listing]
+
+trigger:
+  type: mcp-tool-call
+  tool: cdd_list_contracts
+
+behaviors:
+  - id: return-all-summaries
+    description: >
+      When called with no filters, returns a summary for every contract
+      in the contracts directory.
+    constraints:
+      - Each summary must include id, version, name, description, domain, tags
+      - Each summary must include trigger.type if the contract has a trigger
+      - Each summary must include the count of linked tests
+      - Each summary must include the count of refs
+
+  - id: filter-by-domain
+    description: >
+      When the domain parameter is provided, only contracts matching that
+      domain are returned.
+    constraints:
+      - Domain matching must be exact (case-sensitive)
+      - Contracts without a domain field never match a domain filter
+
+  - id: filter-by-tags
+    description: >
+      When the tags parameter is provided, contracts matching any of the
+      provided tags are returned (OR logic, not AND).
+    constraints:
+      - Tag matching must be exact (case-sensitive)
+      - A contract matches if it has at least one tag in common with the filter list
+
+  - id: combined-filters
+    description: >
+      When both domain and tags are provided, both filters apply (AND logic
+      between domain and tags).
+    constraints:
+      - A contract must match the domain AND have at least one matching tag

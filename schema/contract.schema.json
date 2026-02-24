@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cdd.dev/schema/contract.schema.json",
+  "title": "CDD Contract",
+  "description": "Schema for Contract Driven Development contract files.",
+  "type": "object",
+  "required": ["id", "version", "name", "description"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Unique identifier in kebab-case. Must match the filename (without .contract.yaml suffix)."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-(0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(\\.(0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?$",
+      "description": "Semantic version string tracking contract evolution."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable name displayed in listings and summaries."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Plain language description of the behavior this contract upholds. The most important field -- this is what agents read to understand intent."
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["must", "should", "prefer"],
+      "default": "must",
+      "description": "Enforcement level. 'must' fails CI on violation, 'should' produces warnings, 'prefer' is informational."
+    },
+    "domain": {
+      "type": "string",
+      "description": "Freeform grouping label for filtering (e.g., 'ingestion', 'auth', 'billing')."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "description": "Additional labels for discovery and filtering."
+    },
+    "applies_to": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "A single glob pattern for files this contract applies to."
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "A list of glob patterns for files this contract applies to."
+        }
+      ],
+      "description": "Glob patterns for files this contract applies to. When set, the contract is automatically included in affected-contracts queries when queried files match. Use '**' for global contracts."
+    },
+    "trigger": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The type of event that triggers this contract's behavior (e.g., 'http', 'kafka-message', 'cron', 'mcp-tool-call')."
+        }
+      },
+      "additionalProperties": true,
+      "description": "What initiates this contract's behavior. Only 'type' is used structurally; all other fields are freeform for the agent's benefit."
+    },
+    "refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "File paths relative to the repo root that this contract is concerned with."
+    },
+    "behaviors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/behavior"
+      },
+      "description": "Expected behaviors when the contract's trigger fires."
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dependency"
+      },
+      "description": "Other contracts that must be satisfied for this contract to work."
+    },
+    "testing": {
+      "type": "object",
+      "properties": {
+        "fixtures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "File paths to test fixtures. Used for ref resolution."
+        }
+      },
+      "additionalProperties": true,
+      "description": "Metadata about how this contract should be tested. Only 'fixtures' is used structurally; everything else is freeform."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Freeform space for context, historical decisions, known edge cases, or links to external documentation."
+    }
+  },
+  "$defs": {
+    "behavior": {
+      "type": "object",
+      "required": ["id", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "description": "Unique identifier for this behavior within the contract."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What should happen when this behavior is triggered."
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "File paths specific to this behavior."
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Freeform constraints that must hold for this behavior."
+        }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "required": ["contract"],
+      "additionalProperties": false,
+      "properties": {
+        "contract": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "description": "The id of the contract this one depends on."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why this dependency exists."
+        }
+      }
+    }
+  }
+}

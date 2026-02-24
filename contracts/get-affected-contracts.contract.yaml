@@ -1,0 +1,53 @@
+id: get-affected-contracts
+version: "1.0.0"
+name: Get Affected Contracts Tool
+description: >
+  The cdd_get_affected_contracts tool is the key planning tool. Given a
+  list of file paths, it returns all contracts that have a stake in those
+  files. A contract is affected if any of its refs, behavior refs, or
+  testing fixtures overlap with the queried files, OR if its applies_to
+  glob patterns match any of the queried files. The agent uses this to
+  understand the contract implications of a planned change before writing
+  any code.
+
+priority: must
+domain: mcp-tools
+tags: [mcp, planning, impact-analysis]
+
+trigger:
+  type: mcp-tool-call
+  tool: cdd_get_affected_contracts
+
+behaviors:
+  - id: match-by-refs
+    description: >
+      Contracts whose refs, behaviors[].refs, or testing.fixtures contain
+      any of the queried file paths are returned.
+    constraints:
+      - Matching must be exact path comparison (no glob expansion on refs)
+      - All ref locations must be checked -- top-level refs, each behavior's refs, and testing.fixtures
+
+  - id: match-by-applies-to
+    description: >
+      Contracts whose applies_to glob patterns match any of the queried
+      file paths are returned, even if their refs don't overlap.
+    constraints:
+      - applies_to patterns must be evaluated as glob patterns against each queried file
+      - A contract with applies_to "**" matches every query
+      - Both string and array forms of applies_to must be supported
+
+  - id: return-matched-refs
+    description: >
+      Each result includes a matched_refs field showing which specific
+      refs caused the match.
+    constraints:
+      - matched_refs must list the exact file paths that overlapped
+      - For applies_to matches, matched_refs must indicate which glob pattern matched and which files it matched against
+
+  - id: summary-format
+    description: >
+      Results use the same summary format as cdd_list_contracts, plus
+      the matched_refs field.
+    constraints:
+      - Each result must include id, version, name, description, domain, tags, trigger.type, test count, ref count
+      - The matched_refs field is the only addition to the standard summary format
