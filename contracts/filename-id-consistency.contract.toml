@@ -1,0 +1,43 @@
+id = "filename-id-consistency"
+version = "1.0.0"
+name = "Filename-ID Consistency"
+description = """
+Every contract file must be named {id}.contract.toml where {id} matches the id field \
+inside the file. This invariant is enforced on load, creation, and update. When the id \
+changes during an update, the file must be renamed. A mismatch between filename and id \
+is always a validation error.
+"""
+priority = "must"
+status = "active"
+domain = "core"
+tags = ["validation", "naming", "consistency"]
+applies_to = "contracts/*.contract.toml"
+files = ["src/tools/loader.rs"]
+
+[[rules]]
+id = "validate-on-load"
+description = """
+When loading contracts, the server checks that each file's name matches its internal id field.
+"""
+constraints = [
+    "The expected filename is {id}.contract.toml",
+    "Mismatches are reported as validation errors in health checks",
+    "A mismatched contract is still loaded (for error reporting) but flagged as invalid",
+]
+
+[[rules]]
+id = "enforce-on-create"
+description = "When cdd_create_contract writes a file, the filename is derived from the id field."
+constraints = [
+    "The caller cannot specify a custom filename",
+    "The filename must be exactly {id}.contract.toml",
+]
+
+[[rules]]
+id = "enforce-on-update"
+description = "When cdd_update_contract changes a contract's id, the file is renamed to match the new id."
+constraints = [
+    "The old file must be removed",
+    "The new file must use the new id",
+    "If a file with the new name already exists, the update fails",
+]

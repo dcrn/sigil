@@ -1,0 +1,37 @@
+id = "validate-contract"
+version = "1.0.0"
+name = "Validate Contract Tool"
+description = """
+The cdd_validate_contract tool validates a single contract: checks schema compliance, \
+missing files (files referenced but not on disk), and structural correctness (e.g. unique \
+rule ids). Returns a pass/fail result with categorized errors and warnings.
+"""
+priority = "must"
+status = "active"
+domain = "mcp-tools"
+tags = ["mcp", "validation"]
+files = [
+    "src/tools/validate_contract.rs",
+    "src/tools/loader.rs",
+    "schema/contract.schema.json",
+]
+
+[trigger]
+type = "mcp-tool-call"
+tool = "cdd_validate_contract"
+
+[[rules]]
+id = "report-missing-files"
+description = "Lists files referenced in the contract that do not exist on disk."
+constraints = [
+    "Must check top-level files and rules[].files",
+    "Each entry must include the contract id and the missing file path",
+]
+
+[[rules]]
+id = "report-validation-errors"
+description = "Reports schema validation failures for the contract."
+files = ["schema/contract.schema.json"]
+constraints = [
+    "Each entry must include the specific validation failures",
+]

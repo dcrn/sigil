@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "cdd": {
+      "type": "stdio",
+      "command": "target/debug/cdd.exe",
+      "args": [],
+      "env": {}
+    }
+  }
+}

@@ -1,0 +1,65 @@
+id = "create-contract"
+version = "1.0.0"
+name = "Create Contract Tool"
+description = """
+The cdd_create_contract tool creates a new contract file in the contracts directory. It \
+accepts the full contract content, validates it against the schema, and writes the file. \
+The filename is derived from the contract's id field. If a contract with that id already \
+exists, the operation fails. The tool validates structure but does not judge whether the \
+contract makes sense -- that is left to human code review.
+"""
+priority = "must"
+status = "active"
+domain = "mcp-tools"
+tags = ["mcp", "lifecycle", "write"]
+files = ["src/tools/create_contract.rs", "src/tools/loader.rs"]
+
+[trigger]
+type = "mcp-tool-call"
+tool = "cdd_create_contract"
+
+[[rules]]
+id = "write-valid-contract"
+description = """
+When the contract content is valid, writes it to the contracts directory as \
+{id}.contract.toml.
+"""
+constraints = [
+    "The file path must be {contracts_dir}/{id}.contract.toml",
+    "The TOML output must be well-formatted and human-readable",
+    "The response must include the path where the file was written",
+]
+
+[[rules]]
+id = "reject-invalid"
+description = """
+When the contract content fails schema validation, the file is not written and all \
+validation errors are returned.
+"""
+constraints = [
+    "No file must be written to disk on validation failure",
+    "All validation errors must be returned, not just the first one",
+    "The response must include a validation field with the errors",
+]
+
+[[rules]]
+id = "reject-duplicate"
+description = """
+When a contract with the same id already exists, the operation fails with a clear error.
+"""
+constraints = [
+    "The error must indicate that the contract already exists",
+    "The error must suggest using cdd_update_contract instead",
+    "The existing contract file must not be modified",
+]
+
+[[rules]]
+id = "return-validation-warnings"
+description = """
+Even when a contract is valid and written successfully, the response includes any \
+non-blocking warnings (e.g., files referenced by the contract that don't exist yet).
+"""
+constraints = [
+    "Warnings must not prevent the contract from being written",
+    "Warnings must be clearly distinguished from errors",
+]

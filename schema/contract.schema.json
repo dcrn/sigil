@@ -5,12 +5,12 @@
   "description": "Schema for Contract Driven Development contract files.",
   "type": "object",
   "required": ["id", "version", "name", "description"],
-  "additionalProperties": false,
+  "additionalProperties": true,
   "properties": {
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-      "description": "Unique identifier in kebab-case. Must match the filename (without .contract.yaml suffix)."
+      "description": "Unique identifier in kebab-case. Must match the filename (without .contract.toml suffix). Uniqueness across files is enforced by the tool, not this schema."
     },
     "version": {
       "type": "string",
@@ -25,13 +25,19 @@
     "description": {
       "type": "string",
       "minLength": 1,
-      "description": "Plain language description of the behavior this contract upholds. The most important field -- this is what agents read to understand intent."
+      "description": "Plain language description of the rule this contract upholds. The most important field -- this is what agents read to understand intent."
     },
     "priority": {
       "type": "string",
       "enum": ["must", "should", "prefer"],
       "default": "must",
       "description": "Enforcement level. 'must' fails CI on violation, 'should' produces warnings, 'prefer' is informational."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "draft", "deprecated"],
+      "default": "active",
+      "description": "Lifecycle state. 'draft' is not enforced in CI and signals work-in-progress. 'active' is fully enforced. 'deprecated' is still enforced but agents should not create new dependencies on it; CI warns rather than fails regardless of priority."
     },
     "domain": {
       "type": "string",
@@ -40,81 +46,71 @@
     "tags": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       },
       "uniqueItems": true,
-      "description": "Additional labels for discovery and filtering."
+      "description": "Additional labels for discovery and filtering. Empty strings are not allowed -- they would silently break tag-based filtering."
     },
     "applies_to": {
       "oneOf": [
         {
           "type": "string",
+          "minLength": 1,
           "description": "A single glob pattern for files this contract applies to."
         },
         {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "minItems": 1,
           "description": "A list of glob patterns for files this contract applies to."
         }
       ],
-      "description": "Glob patterns for files this contract applies to. When set, the contract is automatically included in affected-contracts queries when queried files match. Use '**' for global contracts."
+      "description": "Glob patterns for files this contract applies to. When set, the contract is automatically included in affected-contracts queries when queried files match. Use '**' for global contracts. Empty strings are not allowed -- they match nothing and are always a mistake."
     },
     "trigger": {
       "type": "object",
+      "additionalProperties": true,
       "properties": {
         "type": {
           "type": "string",
-          "description": "The type of event that triggers this contract's behavior (e.g., 'http', 'kafka-message', 'cron', 'mcp-tool-call')."
+          "description": "The kind of event (e.g. 'kafka-message', 'http-request', 'mcp-tool-call', 'cron')."
         }
       },
-      "additionalProperties": true,
-      "description": "What initiates this contract's behavior. Only 'type' is used structurally; all other fields are freeform for the agent's benefit."
+      "description": "What initiates this contract's rule. 'type' is the only conventionally used key. Everything else is freeform domain context for the agent."
     },
-    "refs": {
+    "files": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       },
-      "description": "File paths relative to the repo root that this contract is concerned with."
+      "description": "File paths relative to the repo root that this contract cares about. Used at contract level for source files, config, and schemas relevant to the whole contract."
     },
-    "behaviors": {
+    "rules": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/behavior"
+        "$ref": "#/$defs/rule"
       },
-      "description": "Expected behaviors when the contract's trigger fires."
-    },
-    "depends_on": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/dependency"
-      },
-      "description": "Other contracts that must be satisfied for this contract to work."
-    },
-    "testing": {
-      "type": "object",
-      "properties": {
-        "fixtures": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "File paths to test fixtures. Used for ref resolution."
-        }
-      },
-      "additionalProperties": true,
-      "description": "Metadata about how this contract should be tested. Only 'fixtures' is used structurally; everything else is freeform."
+      "description": "Expected rules when the contract's trigger fires. rule.id must be unique within the array (enforced by the tool, not this schema)."
     },
     "notes": {
       "type": "string",
       "description": "Freeform space for context, historical decisions, known edge cases, or links to external documentation."
+    },
+    "changelog": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/changelog-entry"
+      },
+      "description": "History of contract changes. Helps agents understand why constraints exist without reading git blame."
     }
   },
   "$defs": {
-    "behavior": {
+    "rule": {
       "type": "object",
       "required": ["id", "description"],
       "additionalProperties": false,
@@ -122,42 +118,50 @@
         "id": {
           "type": "string",
           "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-          "description": "Unique identifier for this behavior within the contract."
+          "description": "Unique identifier for this rule within the contract. Uniqueness within the array is enforced by the tool."
         },
         "description": {
           "type": "string",
           "minLength": 1,
-          "description": "What should happen when this behavior is triggered."
+          "description": "What should happen when this rule is triggered."
         },
-        "refs": {
+        "files": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
-          "description": "File paths specific to this behavior."
+          "description": "File paths specific to this rule (e.g. migrations, schemas, config files)."
         },
         "constraints": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
-          "description": "Freeform constraints that must hold for this behavior."
+          "description": "Freeform invariants that must hold for this rule. Interpreted by agents; not validated structurally."
         }
       }
     },
-    "dependency": {
+    "changelog-entry": {
       "type": "object",
-      "required": ["contract"],
+      "required": ["version", "description"],
       "additionalProperties": false,
       "properties": {
-        "contract": {
+        "version": {
           "type": "string",
-          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-          "description": "The id of the contract this one depends on."
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-(0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(\\.(0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?$",
+          "description": "The contract version this entry describes."
         },
-        "reason": {
+        "date": {
           "type": "string",
-          "description": "Why this dependency exists."
+          "format": "date",
+          "description": "ISO 8601 date when this version was published (e.g., '2026-02-20')."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What changed and why. Context here saves future agents from reading git blame."
         }
       }
     }

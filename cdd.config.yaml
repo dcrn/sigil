@@ -1,5 +1,0 @@
-contracts_dir: contracts/
-test_link_pattern: 'fulfills-contract\("([^"]+)"\)'
-test_dirs:
-  - tests/
-  - src/**/*.test.*

@@ -1,0 +1,57 @@
+id = "get-affected-contracts"
+version = "1.0.0"
+name = "Get Affected Contracts Tool"
+description = """
+The cdd_get_affected_contracts tool is the key planning tool. Given a list of file paths, \
+it returns all contracts that have a stake in those files. A contract is affected if any \
+of its files, rule files, or applies_to glob patterns match any of the queried files. The agent uses this to understand \
+the contract implications of a planned change before writing any code.
+"""
+priority = "must"
+status = "active"
+domain = "mcp-tools"
+tags = ["mcp", "planning", "impact-analysis"]
+files = ["src/tools/get_affected_contracts.rs", "src/tools/loader.rs"]
+
+[trigger]
+type = "mcp-tool-call"
+tool = "cdd_get_affected_contracts"
+
+[[rules]]
+id = "match-by-files"
+description = """
+Contracts whose files or rules[].files contain any of the queried \
+file paths are returned.
+"""
+constraints = [
+    "Matching must be exact path comparison (no glob expansion)",
+    "All file locations must be checked -- top-level files and each rule's files",
+]
+
+[[rules]]
+id = "match-by-applies-to"
+description = """
+Contracts whose applies_to glob patterns match any of the queried file paths are returned, \
+even if their files don't overlap.
+"""
+constraints = [
+    "applies_to patterns must be evaluated as glob patterns against each queried file",
+    "A contract with applies_to \"**\" matches every query",
+    "Both string and array forms of applies_to must be supported",
+]
+
+[[rules]]
+id = "return-matched-files"
+description = "Each result includes a matched_files field showing which specific files caused the match."
+constraints = [
+    "matched_files must list the exact file paths that overlapped",
+    "For applies_to matches, matched_files must indicate which glob pattern matched and which files it matched against",
+]
+
+[[rules]]
+id = "summary-format"
+description = "Results use the same summary format as cdd_list_contracts, plus the matched_files field."
+constraints = [
+    "Each result must include id, version, name, description, domain, tags, trigger.type, test count, file count",
+    "The matched_files field is the only addition to the standard summary format",
+]

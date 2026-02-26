@@ -1,0 +1,79 @@
+# Example contract: a precise, production-style contract for a Kafka ingestion pipeline.
+
+id = "device-data-ingestion"
+version = "1.3.0"
+name = "Device Data Ingestion"
+description = """
+When a message arrives on the device-data Kafka topic, the service
+must validate the payload against the DeviceMessage Avro schema.
+Valid messages are stored in the device_data table. Invalid messages
+are published to the device-data-dlq topic with the original payload
+preserved and an error reason attached.
+"""
+
+priority = "must"
+status = "active"
+domain = "ingestion"
+tags = ["kafka", "storage", "device-data"]
+
+# Contract-wide files: source, config, schemas the whole contract cares about.
+files = [
+    "src/ingestion/handler.ts",
+    "config/kafka-consumers.yaml",
+    "schemas/DeviceMessage.avsc",
+    "fixtures/valid-device-message.json",
+    "fixtures/invalid-device-message.json",
+    "fixtures/unknown-device-message.json",
+    "fixtures/duplicate-device-message.json",
+]
+
+notes = """
+The device_data table is partitioned by received_at month.
+Integration tests should use the embedded Kafka test container.
+"""
+
+[trigger]
+type = "kafka-message"
+topic = "device-data"
+consumer_group = "device-ingestion-service"
+
+[[rules]]
+id = "store-valid-message"
+description = "Valid messages are persisted to the device_data table."
+files = ["db/migrations/003_device_data.sql"]
+constraints = [
+    "device_id must not be null",
+    "received_at must be set from the Kafka message timestamp",
+    "payload must pass DeviceMessage schema validation before storage",
+    "duplicate messages (same device_id + timestamp) must be idempotent",
+]
+
+[[rules]]
+id = "dead-letter-invalid"
+description = "Invalid messages are published to the device-data-dlq topic."
+files = ["schemas/DeadLetterEnvelope.avsc"]
+constraints = [
+    "original payload must be preserved byte-for-byte",
+    "error reason must be included as a message header",
+    "the dlq message must include the original topic, partition, and offset",
+]
+
+[[changelog]]
+version = "1.3.0"
+date = "2026-02-20"
+description = "Added idempotency constraint after incident INC-2847."
+
+[[changelog]]
+version = "1.2.0"
+date = "2026-01-15"
+description = "Added requirement to include original offset in DLQ messages to support the new replay tooling."
+
+[[changelog]]
+version = "1.1.0"
+date = "2025-11-03"
+description = "Split dead-letter rule into its own rule block."
+
+[[changelog]]
+version = "1.0.0"
+date = "2025-09-14"
+description = "Initial contract."

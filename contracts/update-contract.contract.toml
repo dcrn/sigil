@@ -1,0 +1,72 @@
+id = "update-contract"
+version = "1.0.0"
+name = "Update Contract Tool"
+description = """
+The cdd_update_contract tool applies partial updates to an existing contract. Fields \
+provided in the updates parameter overwrite existing values; fields not provided are left \
+unchanged. The tool validates the resulting contract, generates a human-readable diff, \
+and writes the updated file. If validation fails, the original file is left unchanged.
+"""
+priority = "must"
+status = "active"
+domain = "mcp-tools"
+tags = ["mcp", "lifecycle", "write"]
+files = ["src/tools/update_contract.rs", "src/tools/loader.rs"]
+
+[trigger]
+type = "mcp-tool-call"
+tool = "cdd_update_contract"
+
+[[rules]]
+id = "merge-and-write"
+description = "Merges the updates into the existing contract and writes the result."
+constraints = [
+    "Fields not present in updates must be preserved from the original",
+    "The merge is shallow for top-level fields -- providing a new rules list replaces the entire rules list",
+    "The response must include the file path",
+]
+
+[[rules]]
+id = "generate-diff"
+description = "The response includes a human-readable diff showing what changed."
+constraints = [
+    "The diff must show old and new values for changed fields",
+    "Unchanged fields should not appear in the diff",
+    "The diff format must be readable by both humans and agents",
+]
+
+[[rules]]
+id = "reject-invalid"
+description = "If the merged result fails schema validation, the original file is left unchanged and errors are returned."
+constraints = [
+    "The original file must not be modified on validation failure",
+    "All validation errors must be returned",
+]
+
+[[rules]]
+id = "require-prior-read"
+description = """
+Before applying an update, the tool verifies that cdd_get_contract was called for this \
+contract_id in the current session. If not, it returns an error instructing the caller \
+to read the contract first.
+"""
+constraints = [
+    "The error must name the contract_id and instruct the caller to call cdd_get_contract before retrying",
+    "The original file must not be modified when this check fails",
+]
+
+[[rules]]
+id = "not-found"
+description = "When the contract_id does not exist, the tool returns a clear error."
+constraints = [
+    "The error must suggest using cdd_create_contract instead",
+]
+
+[[rules]]
+id = "handle-id-change"
+description = "If the updates include a new id, the old file is removed and a new file is created with the new name."
+constraints = [
+    "The old file must be deleted",
+    "The new file must use the new id as its filename",
+    "If a contract with the new id already exists, the operation fails and the original is left unchanged",
+]

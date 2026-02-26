@@ -1,0 +1,45 @@
+id = "review-changeset"
+version = "1.0.0"
+name = "Review Changeset Tool"
+description = """
+The cdd_review_changeset tool is a convenience tool that bundles the calls an agent would \
+otherwise make sequentially during a CI review. Given a list of changed files and an \
+optional diff, it returns all affected contracts with full context (contract content and file contents). \
+The agent then performs the semantic review and produces verdicts. The tool \
+itself does no interpretation -- it assembles context efficiently.
+"""
+priority = "must"
+status = "active"
+domain = "mcp-tools"
+tags = ["mcp", "ci", "review"]
+files = ["src/tools/review_changeset.rs", "src/tools/loader.rs"]
+
+[trigger]
+type = "mcp-tool-call"
+tool = "cdd_review_changeset"
+
+[[rules]]
+id = "return-affected-contracts"
+description = "Returns the list of affected contracts in summary form."
+constraints = [
+    "Uses the same matching logic as cdd_get_affected_contracts",
+    "Includes matched_files for each contract",
+]
+
+[[rules]]
+id = "return-full-context"
+description = """
+For each affected contract, includes the full contract content with all file contents \
+retrieved and included in the response.
+"""
+constraints = [
+    "Equivalent to calling cdd_get_contract with retrieve_file_contents true for each affected contract",
+    "Missing files must be indicated, not silently omitted",
+]
+
+[[rules]]
+id = "handle-no-affected"
+description = "When no contracts are affected by the changed files, returns empty results rather than an error."
+constraints = [
+    "An empty affected_contracts list is a valid, non-error response",
+]

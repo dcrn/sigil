@@ -1,0 +1,47 @@
+id = "config-loading"
+version = "1.0.0"
+name = "Configuration Loading"
+description = """
+The MCP server reads its configuration from a cdd.config.toml file in the project root. \
+This file specifies the contracts directory path. If the config file is missing, the \
+server uses sensible defaults (contracts_dir: "contracts/"). If the config file exists \
+but is malformed, the server reports a clear error \
+and refuses to start.
+"""
+priority = "must"
+status = "active"
+domain = "core"
+tags = ["config", "startup"]
+files = ["cdd.config.toml", "src/config.rs"]
+
+[[rules]]
+id = "load-from-file"
+description = """
+On startup, the server reads cdd.config.toml from the project root and uses its values \
+for contracts_dir.
+"""
+files = ["cdd.config.toml"]
+constraints = [
+    "contracts_dir must be treated as relative to the project root",
+]
+
+[[rules]]
+id = "defaults-when-missing"
+description = """
+If cdd.config.toml does not exist, the server starts with default configuration values \
+rather than failing.
+"""
+constraints = [
+    "Default contracts_dir is \"contracts/\"",
+]
+
+[[rules]]
+id = "error-on-malformed"
+description = """
+If cdd.config.toml exists but contains invalid TOML or unrecognized fields, the server \
+reports a clear error.
+"""
+constraints = [
+    "The error message must identify what is wrong with the config",
+    "The server must not start with a partially-parsed config",
+]

@@ -1,0 +1,50 @@
+id = "validate-all-contracts"
+version = "1.0.0"
+name = "Validate All Contracts Tool"
+description = """
+The cdd_validate_all_contracts tool runs fast, deterministic checks on the contract system \
+that require no AI interpretation. It is designed for CI pipelines where speed and cost \
+matter. It checks for missing files, schema validation errors, duplicate rule ids, and \
+filename-id consistency. The result is a pass/fail boolean with categorized lists of \
+errors and warnings.
+"""
+priority = "must"
+status = "active"
+domain = "mcp-tools"
+tags = ["mcp", "ci", "validation"]
+files = [
+    "src/tools/validate_all_contracts.rs",
+    "src/tools/loader.rs",
+    "schema/contract.schema.json",
+]
+
+[trigger]
+type = "mcp-tool-call"
+tool = "cdd_validate_all_contracts"
+
+[[rules]]
+id = "check-missing-files"
+description = "Detects contracts that reference files which do not exist on disk."
+constraints = [
+    "Must check top-level files and rules[].files",
+    "Missing files are always errors (not warnings)",
+    "Each error must include the contract id and the missing file path",
+]
+
+[[rules]]
+id = "check-schema-validation"
+description = "Detects contracts that do not conform to the CDD contract schema."
+files = ["schema/contract.schema.json"]
+constraints = [
+    "Schema violations are always errors",
+    "Each error must include the contract id and specific validation failures",
+]
+
+[[rules]]
+id = "return-pass-fail"
+description = "Returns a top-level pass boolean, plus categorized errors and warnings."
+constraints = [
+    "pass is true only when there are zero errors",
+    "Warnings do not affect the pass/fail result",
+    "Each issue must include type, contract_id (if applicable), file (if applicable), line (if applicable), and message",
+]

@@ -1,0 +1,58 @@
+id = "get-contract"
+version = "1.0.0"
+name = "Get Contract Tool"
+description = """
+The cdd_get_contract tool retrieves a single contract by id with full detail. When \
+retrieve_file_contents is true, it also includes the file contents of all referenced files (from \
+files and rules[].files). This is the "give me full context" call \
+that agents use when they need to deeply understand a contract and everything it touches.
+"""
+priority = "must"
+status = "active"
+domain = "mcp-tools"
+tags = ["mcp", "discovery", "context"]
+files = ["src/tools/get_contract.rs", "src/tools/loader.rs"]
+
+[trigger]
+type = "mcp-tool-call"
+tool = "cdd_get_contract"
+
+[[rules]]
+id = "return-full-contract"
+description = "Returns the complete contract content parsed from the TOML file."
+constraints = [
+    "All fields present in the TOML must be included in the response",
+    "The response format must be the contract TOML parsed to JSON",
+]
+
+[[rules]]
+id = "retrieve-file-contents"
+description = """
+When retrieve_file_contents is true, the response includes the file contents of every file \
+referenced in the contract.
+"""
+constraints = [
+    "Must retrieve file contents from top-level files and rules[].files",
+    "Each retrieved file must include the file path and its contents",
+    "If a referenced file does not exist, the entry must indicate that the file is missing rather than omitting it silently",
+    "Binary files should be reported as present but not have their contents included",
+]
+
+[[rules]]
+id = "require-prior-listing"
+description = """
+Before fetching a contract by id, the tool verifies that cdd_list_contracts or \
+cdd_get_affected_contracts was called in the current session. If not, it returns an \
+error instructing the caller to list contracts first.
+"""
+constraints = [
+    "The error must instruct the caller to call cdd_list_contracts or cdd_get_affected_contracts before retrying",
+]
+
+[[rules]]
+id = "not-found"
+description = "When the requested contract_id does not match any contract, the tool returns a clear error."
+constraints = [
+    "The error must include the requested id",
+    "The error must not expose internal file paths beyond the contracts directory",
+]

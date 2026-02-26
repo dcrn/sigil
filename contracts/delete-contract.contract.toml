@@ -1,0 +1,43 @@
+id = "delete-contract"
+version = "1.0.0"
+name = "Delete Contract Tool"
+description = """
+The cdd_delete_contract tool removes a contract TOML file from the contracts directory \
+and returns the path of the deleted file. The tool deletes the file and reports the facts.
+"""
+priority = "must"
+status = "active"
+domain = "mcp-tools"
+tags = ["mcp", "lifecycle", "write"]
+files = ["src/tools/delete_contract.rs", "src/tools/loader.rs"]
+
+[trigger]
+type = "mcp-tool-call"
+tool = "cdd_delete_contract"
+
+[[rules]]
+id = "delete-file"
+description = "Removes the contract TOML file from the contracts directory."
+constraints = [
+    "The file must be deleted from disk",
+    "The response must include the path of the deleted file",
+]
+
+[[rules]]
+id = "require-prior-read"
+description = """
+Before deleting, the tool verifies that cdd_get_contract was called for this contract_id \
+in the current session. If not, it returns an error instructing the caller to read the \
+contract first.
+"""
+constraints = [
+    "The error must name the contract_id and instruct the caller to call cdd_get_contract before retrying",
+    "The file must not be deleted when this check fails",
+]
+
+[[rules]]
+id = "not-found"
+description = "When the contract_id does not exist, the tool returns a clear error."
+constraints = [
+    "The error must include the requested id",
+]

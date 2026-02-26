@@ -1,0 +1,19 @@
+[package]
+name = "cdd"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rmcp = { version = "0.3", features = ["server", "macros", "transport-io"] }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+toml = { version = "0.8", features = ["preserve_order"] }
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+regex = "1"
+globset = "0.4"
+walkdir = "2"
+similar = { version = "2", features = ["text"] }
+jsonschema = "0.26"
