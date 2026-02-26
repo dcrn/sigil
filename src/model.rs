@@ -82,6 +82,90 @@ pub struct Contract {
     pub extra: serde_json::Map<String, serde_json::Value>,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn minimal() -> Contract {
+        Contract {
+            id: "test".to_string(),
+            version: "1.0.0".to_string(),
+            name: "Test".to_string(),
+            description: "desc".to_string(),
+            priority: Priority::Must,
+            status: Status::Active,
+            domain: None,
+            tags: None,
+            applies_to: None,
+            trigger: None,
+            files: None,
+            rules: None,
+            notes: None,
+            changelog: None,
+            extra: serde_json::Map::new(),
+        }
+    }
+
+    #[test]
+    fn all_files_empty_when_none_set() {
+        assert!(minimal().all_files().is_empty());
+    }
+
+    #[test]
+    fn all_files_collects_top_level_files() {
+        let mut c = minimal();
+        c.files = Some(vec!["src/foo.rs".to_string(), "src/bar.rs".to_string()]);
+        assert_eq!(c.all_files(), vec!["src/foo.rs", "src/bar.rs"]);
+    }
+
+    #[test]
+    fn all_files_collects_rule_files() {
+        let mut c = minimal();
+        c.rules = Some(vec![Rule {
+            id: "r1".to_string(),
+            description: "rule".to_string(),
+            files: Some(vec!["schema/x.json".to_string()]),
+            constraints: None,
+        }]);
+        assert_eq!(c.all_files(), vec!["schema/x.json"]);
+    }
+
+    #[test]
+    fn all_files_collects_both_top_level_and_rule_files() {
+        let mut c = minimal();
+        c.files = Some(vec!["src/main.rs".to_string()]);
+        c.rules = Some(vec![Rule {
+            id: "r1".to_string(),
+            description: "rule".to_string(),
+            files: Some(vec!["schema/x.json".to_string()]),
+            constraints: None,
+        }]);
+        assert_eq!(c.all_files(), vec!["src/main.rs", "schema/x.json"]);
+    }
+
+    #[test]
+    fn applies_to_patterns_none() {
+        assert!(minimal().applies_to_patterns().is_empty());
+    }
+
+    #[test]
+    fn applies_to_patterns_single() {
+        let mut c = minimal();
+        c.applies_to = Some(AppliesTo::Single("src/**/*.rs".to_string()));
+        assert_eq!(c.applies_to_patterns(), vec!["src/**/*.rs"]);
+    }
+
+    #[test]
+    fn applies_to_patterns_multiple() {
+        let mut c = minimal();
+        c.applies_to = Some(AppliesTo::Multiple(vec![
+            "src/**/*.rs".to_string(),
+            "tests/**/*.rs".to_string(),
+        ]));
+        assert_eq!(c.applies_to_patterns(), vec!["src/**/*.rs", "tests/**/*.rs"]);
+    }
+}
+
 impl Contract {
     /// All file paths referenced in this contract.
     pub fn all_files(&self) -> Vec<&str> {

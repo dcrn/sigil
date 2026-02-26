@@ -25,7 +25,6 @@ description = "When called with no filters, returns a summary for every contract
 constraints = [
     "Each summary must include id, version, name, description, domain, tags",
     "Each summary must include trigger.type if the contract has a trigger",
-    "Each summary must include the count of linked tests",
     "Each summary must include the count of files",
 ]
 

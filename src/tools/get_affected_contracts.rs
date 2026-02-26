@@ -121,3 +121,103 @@ pub async fn handle(server: &super::CddServer, params: Params) -> String {
     })
     .unwrap()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use std::fs;
+
+    fn make_server(contracts_dir: &str) -> super::super::CddServer {
+        super::super::CddServer::new(Config {
+            contracts_dir: contracts_dir.to_string(),
+            instructions: None,
+        })
+    }
+
+    fn temp_dir(tag: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("cdd_affected_test_{tag}"));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn write_with_files(dir: &std::path::Path, id: &str, files: &[&str]) {
+        let list = files
+            .iter()
+            .map(|f| format!("\"{}\"", f))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let files_line = if files.is_empty() {
+            String::new()
+        } else {
+            format!("files = [{list}]\n")
+        };
+        let content = format!(
+            "id = \"{id}\"\nversion = \"1.0.0\"\nname = \"{id}\"\ndescription = \"desc\"\n{files_line}"
+        );
+        fs::write(dir.join(format!("{id}.contract.toml")), content).unwrap();
+    }
+
+    fn write_with_applies_to(dir: &std::path::Path, id: &str, pattern: &str) {
+        let content = format!(
+            "id = \"{id}\"\nversion = \"1.0.0\"\nname = \"{id}\"\ndescription = \"desc\"\napplies_to = \"{pattern}\"\n"
+        );
+        fs::write(dir.join(format!("{id}.contract.toml")), content).unwrap();
+    }
+
+    #[tokio::test]
+    async fn no_match_returns_empty() {
+        let dir = temp_dir("no_match");
+        write_with_files(&dir, "contract-a", &["src/foo.rs"]);
+        let server = make_server(dir.to_str().unwrap());
+        let result = handle(&server, Params { files: vec!["src/bar.rs".to_string()] }).await;
+        let json: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(json["total"], 0);
+    }
+
+    #[tokio::test]
+    async fn matches_by_direct_file_path() {
+        let dir = temp_dir("direct");
+        write_with_files(&dir, "contract-a", &["src/foo.rs", "src/bar.rs"]);
+        let server = make_server(dir.to_str().unwrap());
+        let result = handle(&server, Params { files: vec!["src/foo.rs".to_string()] }).await;
+        let json: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(json["total"], 1);
+        assert_eq!(json["contracts"][0]["id"], "contract-a");
+        let direct = &json["contracts"][0]["matched_files"]["direct"];
+        assert!(direct.as_array().unwrap().contains(&serde_json::json!("src/foo.rs")));
+    }
+
+    #[tokio::test]
+    async fn direct_match_is_exact_path_no_glob_expansion() {
+        let dir = temp_dir("exact");
+        write_with_files(&dir, "contract-a", &["src/foo.rs"]);
+        let server = make_server(dir.to_str().unwrap());
+        let result = handle(&server, Params { files: vec!["src/foo".to_string()] }).await;
+        let json: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(json["total"], 0, "Direct match must be exact path comparison");
+    }
+
+    #[tokio::test]
+    async fn matches_by_applies_to_glob() {
+        let dir = temp_dir("glob");
+        write_with_applies_to(&dir, "contract-a", "src/**/*.rs");
+        let server = make_server(dir.to_str().unwrap());
+        let result = handle(&server, Params { files: vec!["src/tools/mod.rs".to_string()] }).await;
+        let json: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(json["total"], 1);
+        let applies = &json["contracts"][0]["matched_files"]["applies_to"];
+        assert!(!applies.as_array().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn wildcard_applies_to_matches_any_file() {
+        let dir = temp_dir("wildcard");
+        write_with_applies_to(&dir, "global-contract", "**");
+        let server = make_server(dir.to_str().unwrap());
+        let result = handle(&server, Params { files: vec!["anything/at/all.txt".to_string()] }).await;
+        let json: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(json["total"], 1);
+    }
+}

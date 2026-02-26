@@ -53,3 +53,57 @@ impl Default for Config {
 fn default_contracts_dir() -> String {
     "contracts/".to_string()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_contracts_dir_is_contracts_slash() {
+        let config = Config::default();
+        assert_eq!(config.contracts_dir, "contracts/");
+    }
+
+    #[test]
+    fn default_instructions_is_nonempty() {
+        let config = Config::default();
+        assert!(!config.instructions().is_empty());
+        assert_eq!(config.instructions(), DEFAULT_INSTRUCTIONS);
+    }
+
+    #[test]
+    fn instructions_override_returned_when_set() {
+        let config = Config {
+            contracts_dir: "contracts/".to_string(),
+            instructions: Some("custom instructions".to_string()),
+        };
+        assert_eq!(config.instructions(), "custom instructions");
+    }
+
+    #[test]
+    fn parse_valid_config_toml() {
+        let content = r#"contracts_dir = "custom/path/""#;
+        let config: Config = toml::from_str(content).unwrap();
+        assert_eq!(config.contracts_dir, "custom/path/");
+    }
+
+    #[test]
+    fn parse_unknown_field_fails() {
+        let content = r#"unknown_field = "value""#;
+        let result: Result<Config, _> = toml::from_str(content);
+        assert!(result.is_err(), "Unknown fields must be rejected (deny_unknown_fields)");
+    }
+
+    #[test]
+    fn parse_malformed_toml_fails() {
+        let content = "not valid toml ===";
+        let result: Result<Config, _> = toml::from_str(content);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn missing_contracts_dir_field_defaults_to_contracts_slash() {
+        let config: Config = toml::from_str("").unwrap();
+        assert_eq!(config.contracts_dir, "contracts/");
+    }
+}

@@ -10,14 +10,14 @@ Contracts are not specs. Specs tell you what to build. Contracts tell you what m
 
 ## What you are responsible for
 
-The MCP server handles structure and facts: parsing TOML, resolving file references, scanning test annotations, and reporting what it finds. It never interprets intent.
+The MCP server handles structure and facts: parsing TOML, resolving file references, and reporting what it finds. It never interprets intent.
 
 You handle semantics and decisions. Specifically:
 
 - Reading contract descriptions and constraints to understand intent
 - Judging whether a proposed change conflicts with a contract
 - Deciding what to do when contracts overlap or conflict
-- Writing tests with `fulfills-contract` annotations
+- Writing tests that confirm contracts are being fulfilled by the application
 - Proposing new contracts for new rules
 - Flagging violations to the human before proceeding
 
@@ -37,7 +37,7 @@ The server will never tell you "this is a conflict." It will give you the facts 
 ### While writing code
 
 1. Respect the constraints of all affected contracts.
-2. Write tests for new or changed rule. Annotate them with `fulfills-contract("<contract-id>")` in a comment.
+2. Write tests for new or changed rules.
 3. When you introduce a new rule that others could break, propose a new contract via `cdd_create_contract`.
 4. When your changes make an existing contract obsolete or inaccurate, update it via `cdd_update_contract` or flag it for the human. You must call `cdd_get_contract` for that contract before calling `cdd_update_contract` or `cdd_delete_contract` -- the server enforces this and will reject the call otherwise.
 
@@ -52,16 +52,6 @@ The server will never tell you "this is a conflict." It will give you the facts 
 - **must** -- violation fails the build. Do not proceed without human approval.
 - **should** -- violation produces a warning. Proceed with caution and document why.
 - **prefer** -- informational. Use your judgment.
-
-## Test annotations
-
-Link tests to contracts with a comment annotation. The pattern is configured per project, but the default is:
-
-```
-fulfills-contract("<contract-id>")
-```
-
-One test can fulfill multiple contracts. One contract can be fulfilled by many tests. Reference the contract `id`, not the file path.
 
 ## Key principles
 

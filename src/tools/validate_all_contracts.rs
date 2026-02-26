@@ -95,3 +95,123 @@ pub async fn handle(server: &super::CddServer, _params: Params) -> String {
     let pass = errors.is_empty();
     serde_json::to_string(&Response { pass, errors, warnings }).unwrap()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use std::fs;
+
+    fn make_server(contracts_dir: &str) -> super::super::CddServer {
+        super::super::CddServer::new(Config {
+            contracts_dir: contracts_dir.to_string(),
+            instructions: None,
+        })
+    }
+
+    fn temp_dir(tag: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("cdd_valall_test_{tag}"));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn write(dir: &std::path::Path, name: &str, content: &str) {
+        fs::write(dir.join(name), content).unwrap();
+    }
+
+    #[tokio::test]
+    async fn pass_on_empty_contracts_dir() {
+        let dir = temp_dir("empty");
+        let server = make_server(dir.to_str().unwrap());
+        let result = handle(&server, Params {}).await;
+        let json: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(json["pass"], true);
+        assert!(json["errors"].as_array().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn pass_on_valid_contract() {
+        let dir = temp_dir("valid");
+        write(&dir, "my-contract.contract.toml", r#"
+id = "my-contract"
+version = "1.0.0"
+name = "My Contract"
+description = "A valid contract"
+"#);
+        let server = make_server(dir.to_str().unwrap());
+        let result = handle(&server, Params {}).await;
+        let json: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(json["pass"], true, "Valid contract should pass: {result}");
+    }
+
+    #[tokio::test]
+    async fn fail_on_missing_referenced_file() {
+        let dir = temp_dir("missing_file");
+        write(&dir, "my-contract.contract.toml", r#"
+id = "my-contract"
+version = "1.0.0"
+name = "My Contract"
+description = "A contract"
+files = ["nonexistent/path.rs"]
+"#);
+        let server = make_server(dir.to_str().unwrap());
+        let result = handle(&server, Params {}).await;
+        let json: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(json["pass"], false);
+        let errors = json["errors"].as_array().unwrap();
+        assert!(
+            errors.iter().any(|e| e["kind"] == "missing_file"),
+            "Must report missing_file error"
+        );
+        assert!(
+            errors.iter().any(|e| e["contract_id"] == "my-contract"),
+            "Error must include contract_id"
+        );
+    }
+
+    #[tokio::test]
+    async fn fail_on_duplicate_rule_ids() {
+        let dir = temp_dir("dup_rules");
+        write(&dir, "my-contract.contract.toml", r#"
+id = "my-contract"
+version = "1.0.0"
+name = "My Contract"
+description = "A contract"
+
+[[rules]]
+id = "rule-one"
+description = "first"
+
+[[rules]]
+id = "rule-one"
+description = "duplicate"
+"#);
+        let server = make_server(dir.to_str().unwrap());
+        let result = handle(&server, Params {}).await;
+        let json: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(json["pass"], false);
+        let errors = json["errors"].as_array().unwrap();
+        assert!(
+            errors.iter().any(|e| e["kind"] == "duplicate_rule_id"),
+            "Must report duplicate_rule_id error"
+        );
+    }
+
+    #[tokio::test]
+    async fn pass_is_false_only_when_errors_present() {
+        let dir = temp_dir("pass_false");
+        write(&dir, "my-contract.contract.toml", r#"
+id = "my-contract"
+version = "1.0.0"
+name = "My Contract"
+description = "A contract"
+files = ["does-not-exist.rs"]
+"#);
+        let server = make_server(dir.to_str().unwrap());
+        let result = handle(&server, Params {}).await;
+        let json: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(json["pass"], false);
+        assert!(!json["errors"].as_array().unwrap().is_empty());
+    }
+}

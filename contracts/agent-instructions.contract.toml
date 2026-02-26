@@ -5,7 +5,7 @@ description = """
 When an agent connects to the CDD MCP server, the server must deliver methodology instructions \
 that tell the agent how to work with contracts. The instructions must cover the agent's \
 responsibilities, the required workflow (discover contracts before coding, check affected \
-contracts, respect constraints, annotate tests, propose new contracts), contract priorities, \
+contracts, respect constraints, propose new contracts), contract priorities, \
 and the boundary between what the server handles and what the agent handles. Without these \
 instructions an agent has access to the tools but no understanding of when or why to call them.
 """
@@ -58,7 +58,7 @@ structure and facts, the agent handles semantics and decisions.
 """
 constraints = [
     "Must state that the server never interprets intent",
-    "Must list what the agent is responsible for (judging conflicts, writing tests, proposing contracts, flagging violations)",
+    "Must list what the agent is responsible for (judging conflicts, writing tests that confirm contracts are fulfilled, proposing contracts, flagging violations)",
 ]
 
 [[rules]]
@@ -70,15 +70,4 @@ the agent's behavior.
 constraints = [
     "Must define must, should, and prefer",
     "Must state that must violations require human approval before proceeding",
-]
-
-[[rules]]
-id = "cover-test-annotations"
-description = """
-The instructions must explain how to link tests to contracts using the fulfills-contract \
-annotation pattern.
-"""
-constraints = [
-    "Must show the annotation syntax",
-    "Must state that annotations reference contract ids, not file paths",
 ]

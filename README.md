@@ -15,7 +15,7 @@ There is no CLI. Contracts are authored by humans (in an editor) or by agents (t
 
 The MCP server handles **structure and facts**. It parses TOML, resolves file references, tracks which contracts touch which files, and reports what it finds. It never interprets intent or makes judgments.
 
-The agent handles **semantics and decisions**. It reads contract descriptions and constraints to understand intent. It judges whether a proposed change conflicts with a contract. It writes tests and adds annotations.
+The agent handles **semantics and decisions**. It reads contract descriptions and constraints to understand intent. It judges whether a proposed change conflicts with a contract. It writes tests that fulfill the contracts.
 
 This boundary is strict. The MCP server will never tell the agent "this is a conflict." It will say "these two contracts both reference the same database table, and here are their constraints." The agent decides what that means.
 

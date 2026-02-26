@@ -52,6 +52,6 @@ constraints = [
 id = "summary-format"
 description = "Results use the same summary format as cdd_list_contracts, plus the matched_files field."
 constraints = [
-    "Each result must include id, version, name, description, domain, tags, trigger.type, test count, file count",
+    "Each result must include id, version, name, description, domain, tags, trigger.type, file count",
     "The matched_files field is the only addition to the standard summary format",
 ]
