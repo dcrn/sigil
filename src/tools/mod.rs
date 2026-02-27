@@ -1,5 +1,6 @@
 mod create_contract;
 mod delete_contract;
+mod get_notes;
 mod loader;
 mod get_affected_contracts;
 mod get_contract;
@@ -91,6 +92,14 @@ impl CddServer {
             config,
             session: Mutex::new(SessionState::default()),
         }
+    }
+
+    #[tool(description = "Return global project notes from the config file. Notes contain project-specific conventions and context that apply across all contracts.")]
+    async fn cdd_get_notes(
+        &self,
+        Parameters(params): Parameters<get_notes::Params>,
+    ) -> String {
+        get_notes::handle(self, params).await
     }
 
     #[tool(description = "List all contracts with summary info. Starting point for planning. Supports optional filtering by domain and/or tags. Call this before cdd_get_contract.")]

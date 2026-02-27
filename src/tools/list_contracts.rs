@@ -99,6 +99,7 @@ mod tests {
         super::super::CddServer::new(Config {
             contracts_dir: contracts_dir.to_string(),
             instructions: None,
+            notes: None,
         })
     }
 

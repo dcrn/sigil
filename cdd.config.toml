@@ -1,1 +1,16 @@
 contracts_dir = "contracts/"
+
+notes = """
+# Test Implementation Conventions
+
+All tests must use // Given, // When, and // Then comments to separate the \
+three phases of each test:
+
+- // Given  — set up the preconditions (temp dirs, contract files, server instances)
+- // When   — perform the single action being tested (call the handler)
+- // Then   — assert the expected outcome
+
+Every test must have exactly one // When block. Setup and assertions must not \
+be mixed into the same block. This makes it immediately clear what is being \
+tested and what the expected result is.
+"""

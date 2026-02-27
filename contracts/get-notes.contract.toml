@@ -1,0 +1,37 @@
+id = "get-notes"
+version = "1.0.0"
+name = "Get Notes Tool"
+description = "The cdd_get_notes tool returns the global project notes defined in the cdd.config.toml file. Notes contain project-specific conventions and context that apply across all contracts — things like test style requirements, naming conventions, or architectural decisions that every agent working on the project should know. When notes are not configured, the tool returns null rather than an error."
+priority = "must"
+status = "active"
+domain = "mcp-tools"
+tags = [
+    "mcp",
+    "discovery",
+    "conventions",
+]
+files = [
+    "src/tools/get_notes.rs",
+    "cdd.config.toml",
+]
+
+[trigger]
+type = "mcp-tool-call"
+tool = "cdd_get_notes"
+
+[[rules]]
+id = "return-notes-from-config"
+description = "Returns the notes string from cdd.config.toml when present."
+files = ["cdd.config.toml"]
+constraints = [
+    "The notes field must be read from the loaded config, not hardcoded",
+    "The response must include a notes field containing the string or null",
+]
+
+[[rules]]
+id = "return-null-when-absent"
+description = "When no notes field is set in cdd.config.toml, the tool returns null for the notes field rather than an error."
+constraints = [
+    "A missing notes field is not an error condition",
+    "The response shape must be consistent whether notes is present or absent",
+]

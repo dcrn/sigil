@@ -15,6 +15,10 @@ pub struct Config {
     /// Override the agent instructions delivered via MCP ServerInfo.
     /// When absent, the instructions compiled into the binary are used.
     pub instructions: Option<String>,
+
+    /// Global notes delivered to agents via cdd_get_notes.
+    /// Intended for project-specific conventions the agent should know about.
+    pub notes: Option<String>,
 }
 
 impl Config {
@@ -46,6 +50,7 @@ impl Default for Config {
         Self {
             contracts_dir: default_contracts_dir(),
             instructions: None,
+            notes: None,
         }
     }
 }
@@ -76,6 +81,7 @@ mod tests {
         let config = Config {
             contracts_dir: "contracts/".to_string(),
             instructions: Some("custom instructions".to_string()),
+            notes: None,
         };
         assert_eq!(config.instructions(), "custom instructions");
     }
