@@ -25,7 +25,7 @@ struct Issue {
     file: Option<String>,
 }
 
-pub async fn handle(server: &super::CddServer, params: Params) -> String {
+pub async fn handle(server: &super::SigilServer, params: Params) -> String {
     let (contracts, load_warnings) = super::loader::load_contracts(&server.config.contracts_dir);
 
     let mut errors: Vec<Issue> = Vec::new();

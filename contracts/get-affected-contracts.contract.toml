@@ -2,7 +2,7 @@ id = "get-affected-contracts"
 version = "1.0.0"
 name = "Get Affected Contracts Tool"
 description = """
-The cdd_get_affected_contracts tool is the key planning tool. Given a list of file paths, \
+The sigil_get_affected_contracts tool is the key planning tool. Given a list of file paths, \
 it returns all contracts that have a stake in those files. A contract is affected if any \
 of its files, rule files, or applies_to glob patterns match any of the queried files. The agent uses this to understand \
 the contract implications of a planned change before writing any code.
@@ -15,7 +15,7 @@ files = ["src/tools/get_affected_contracts.rs", "src/tools/loader.rs"]
 
 [trigger]
 type = "mcp-tool-call"
-tool = "cdd_get_affected_contracts"
+tool = "sigil_get_affected_contracts"
 
 [[rules]]
 id = "match-by-files"
@@ -50,7 +50,7 @@ constraints = [
 
 [[rules]]
 id = "summary-format"
-description = "Results use the same summary format as cdd_list_contracts, plus the matched_files field."
+description = "Results use the same summary format as sigil_list_contracts, plus the matched_files field."
 constraints = [
     "Each result must include id, version, name, description, domain, tags, trigger.type, file count",
     "The matched_files field is the only addition to the standard summary format",

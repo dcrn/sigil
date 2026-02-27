@@ -1,5 +1,5 @@
 [package]
-name = "cdd"
+name = "sigil-mcp"
 version = "0.1.0"
 edition = "2024"
 
@@ -17,3 +17,4 @@ globset = "0.4"
 walkdir = "2"
 similar = { version = "2", features = ["text"] }
 jsonschema = "0.26"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }

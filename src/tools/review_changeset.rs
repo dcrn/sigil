@@ -45,7 +45,7 @@ enum FileContent {
     Error { message: String },
 }
 
-pub async fn handle(server: &super::CddServer, params: Params) -> String {
+pub async fn handle(server: &super::SigilServer, params: Params) -> String {
     let (contracts, mut warnings) = super::loader::load_contracts(&server.config.contracts_dir);
     server.mark_listed();
 

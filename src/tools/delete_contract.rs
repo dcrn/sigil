@@ -12,8 +12,8 @@ struct Response {
     deleted: String,
 }
 
-pub async fn handle(server: &super::CddServer, params: Params) -> String {
-    if let Err(e) = server.require_read("cdd_delete_contract", &params.contract_id) {
+pub async fn handle(server: &super::SigilServer, params: Params) -> String {
+    if let Err(e) = server.require_read("sigil_delete_contract", &params.contract_id) {
         return e;
     }
 

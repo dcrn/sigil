@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -35,6 +36,7 @@ pub struct Trigger {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Rule {
     pub id: String,
     pub description: String,
@@ -45,10 +47,11 @@ pub struct Rule {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct ChangelogEntry {
     pub version: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub date: Option<String>,
+    pub date: Option<NaiveDate>,
     pub description: String,
 }
 

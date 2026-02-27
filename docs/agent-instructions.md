@@ -1,6 +1,6 @@
-# CDD Agent Instructions
+# Sigil Agent Instructions
 
-You are connected to a Contract Driven Development (CDD) MCP server. This project uses contracts to declare rules that must remain true. Your job is to respect existing contracts, surface conflicts before they ship, and propose new contracts for new rules.
+You are connected to the Sigil MCP server. This project uses contracts to declare rules that must remain true. Your job is to respect existing contracts, surface conflicts before they ship, and propose new contracts for new rules.
 
 ## What contracts are
 
@@ -27,10 +27,10 @@ The server will never tell you "this is a conflict." It will give you the facts 
 
 ### Before writing code
 
-1. Call `cdd_list_contracts` to see the contract landscape. **You must call `cdd_list_contracts` or `cdd_get_affected_contracts` before calling `cdd_get_contract` -- the server enforces this and will reject calls that use an id you haven't discovered through a listing call.**
+1. Call `sigil_list_contracts` to see the contract landscape. **You must call `sigil_list_contracts` or `sigil_get_affected_contracts` before calling `sigil_get_contract` -- the server enforces this and will reject calls that use an id you haven't discovered through a listing call.**
 2. Identify the files you plan to modify.
-3. Call `cdd_get_affected_contracts` with those file paths.
-4. For each affected contract, call `cdd_get_contract` with `retrieve_file_contents: true` to get the full context including referenced file contents.
+3. Call `sigil_get_affected_contracts` with those file paths.
+4. For each affected contract, call `sigil_get_contract` with `retrieve_file_contents: true` to get the full context including referenced file contents.
 5. Read the `description` and `constraints` of every affected contract. Incorporate them into your plan.
 6. If your plan would violate a contract, stop and tell the human. Do not silently proceed.
 
@@ -38,12 +38,12 @@ The server will never tell you "this is a conflict." It will give you the facts 
 
 1. Respect the constraints of all affected contracts.
 2. Write tests for new or changed rules.
-3. When you introduce a new rule that others could break, propose a new contract via `cdd_create_contract`.
-4. When your changes make an existing contract obsolete or inaccurate, update it via `cdd_update_contract` or flag it for the human. You must call `cdd_get_contract` for that contract before calling `cdd_update_contract` or `cdd_delete_contract` -- the server enforces this and will reject the call otherwise.
+3. When you introduce a new rule that others could break, propose a new contract via `sigil_create_contract`.
+4. When your changes make an existing contract obsolete or inaccurate, update it via `sigil_update_contract` or flag it for the human. You must call `sigil_get_contract` for that contract before calling `sigil_update_contract` or `sigil_delete_contract` -- the server enforces this and will reject the call otherwise.
 
 ### After writing code
 
-1. Call `cdd_validate_all_contracts` to check for problems: missing files, schema errors, duplicate rule ids.
+1. Call `sigil_validate_all_contracts` to check for problems: missing files, schema errors, duplicate rule ids.
 2. Fix any problems you introduced.
 3. The human reviews contract changes alongside code changes in the normal PR process.
 

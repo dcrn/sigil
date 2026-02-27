@@ -16,16 +16,16 @@ pub struct Config {
     /// When absent, the instructions compiled into the binary are used.
     pub instructions: Option<String>,
 
-    /// Global notes delivered to agents via cdd_get_notes.
+    /// Global notes delivered to agents via sigil_get_notes.
     /// Intended for project-specific conventions the agent should know about.
     pub notes: Option<String>,
 }
 
 impl Config {
-    /// Load from `cdd.config.toml` in the current directory.
+    /// Load from `sigil.config.toml` in the current directory.
     /// Returns default config if the file is missing; errors if it is malformed.
     pub fn load() -> Result<Self> {
-        let path = "cdd.config.toml";
+        let path = "sigil.config.toml";
         match std::fs::read_to_string(path) {
             Ok(content) => toml::from_str(&content)
                 .with_context(|| format!("Failed to parse {path}")),

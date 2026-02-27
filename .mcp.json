@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "cdd": {
+    "sigil": {
       "type": "stdio",
-      "command": "target/debug/cdd.exe",
+      "command": "target/debug/sigil-mcp.exe",
       "args": [],
       "env": {}
     }

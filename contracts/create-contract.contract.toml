@@ -2,7 +2,7 @@ id = "create-contract"
 version = "1.0.0"
 name = "Create Contract Tool"
 description = """
-The cdd_create_contract tool creates a new contract file in the contracts directory. It \
+The sigil_create_contract tool creates a new contract file in the contracts directory. It \
 accepts the full contract content, validates it against the schema, and writes the file. \
 The filename is derived from the contract's id field. If a contract with that id already \
 exists, the operation fails. The tool validates structure but does not judge whether the \
@@ -16,7 +16,7 @@ files = ["src/tools/create_contract.rs", "src/tools/loader.rs"]
 
 [trigger]
 type = "mcp-tool-call"
-tool = "cdd_create_contract"
+tool = "sigil_create_contract"
 
 [[rules]]
 id = "write-valid-contract"
@@ -49,7 +49,7 @@ When a contract with the same id already exists, the operation fails with a clea
 """
 constraints = [
     "The error must indicate that the contract already exists",
-    "The error must suggest using cdd_update_contract instead",
+    "The error must suggest using sigil_update_contract instead",
     "The existing contract file must not be modified",
 ]
 

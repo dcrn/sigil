@@ -37,7 +37,7 @@ mod tests {
     use std::fs;
 
     fn temp_dir(tag: &str) -> std::path::PathBuf {
-        let dir = std::env::temp_dir().join(format!("cdd_loader_test_{tag}"));
+        let dir = std::env::temp_dir().join(format!("sigil_loader_test_{tag}"));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir

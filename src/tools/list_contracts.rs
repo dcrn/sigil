@@ -31,7 +31,7 @@ struct Summary {
     file_count: usize,
 }
 
-pub async fn handle(server: &super::CddServer, params: Params) -> String {
+pub async fn handle(server: &super::SigilServer, params: Params) -> String {
     let (contracts, mut warnings) = super::loader::load_contracts(&server.config.contracts_dir);
     server.mark_listed();
 
@@ -95,8 +95,8 @@ mod tests {
     use crate::config::Config;
     use std::fs;
 
-    fn make_server(contracts_dir: &str) -> super::super::CddServer {
-        super::super::CddServer::new(Config {
+    fn make_server(contracts_dir: &str) -> super::super::SigilServer {
+        super::super::SigilServer::new(Config {
             contracts_dir: contracts_dir.to_string(),
             instructions: None,
             notes: None,
@@ -104,7 +104,7 @@ mod tests {
     }
 
     fn temp_dir(tag: &str) -> std::path::PathBuf {
-        let dir = std::env::temp_dir().join(format!("cdd_list_test_{tag}"));
+        let dir = std::env::temp_dir().join(format!("sigil_list_test_{tag}"));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir

@@ -16,7 +16,7 @@ struct Response {
     warnings: Vec<String>,
 }
 
-pub async fn handle(server: &super::CddServer, params: Params) -> String {
+pub async fn handle(server: &super::SigilServer, params: Params) -> String {
     // Schema validation
     let schema_json: serde_json::Value = serde_json::from_str(SCHEMA_STR).unwrap();
     let validator = jsonschema::validator_for(&schema_json).expect("contract schema is valid JSON Schema");
@@ -40,7 +40,7 @@ pub async fn handle(server: &super::CddServer, params: Params) -> String {
     let path = format!("{contracts_dir}/{id}.contract.toml");
     if std::path::Path::new(&path).exists() {
         return super::error_response(format!(
-            "Contract '{id}' already exists at '{path}'. Use cdd_update_contract to modify it."
+            "Contract '{id}' already exists at '{path}'. Use sigil_update_contract to modify it."
         ));
     }
 

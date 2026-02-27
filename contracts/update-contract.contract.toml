@@ -2,7 +2,7 @@ id = "update-contract"
 version = "1.0.0"
 name = "Update Contract Tool"
 description = """
-The cdd_update_contract tool applies partial updates to an existing contract. Fields \
+The sigil_update_contract tool applies partial updates to an existing contract. Fields \
 provided in the updates parameter overwrite existing values; fields not provided are left \
 unchanged. The tool validates the resulting contract, generates a human-readable diff, \
 and writes the updated file. If validation fails, the original file is left unchanged.
@@ -15,7 +15,7 @@ files = ["src/tools/update_contract.rs", "src/tools/loader.rs"]
 
 [trigger]
 type = "mcp-tool-call"
-tool = "cdd_update_contract"
+tool = "sigil_update_contract"
 
 [[rules]]
 id = "merge-and-write"
@@ -46,12 +46,12 @@ constraints = [
 [[rules]]
 id = "require-prior-read"
 description = """
-Before applying an update, the tool verifies that cdd_get_contract was called for this \
+Before applying an update, the tool verifies that sigil_get_contract was called for this \
 contract_id in the current session. If not, it returns an error instructing the caller \
 to read the contract first.
 """
 constraints = [
-    "The error must name the contract_id and instruct the caller to call cdd_get_contract before retrying",
+    "The error must name the contract_id and instruct the caller to call sigil_get_contract before retrying",
     "The original file must not be modified when this check fails",
 ]
 
@@ -59,7 +59,7 @@ constraints = [
 id = "not-found"
 description = "When the contract_id does not exist, the tool returns a clear error."
 constraints = [
-    "The error must suggest using cdd_create_contract instead",
+    "The error must suggest using sigil_create_contract instead",
 ]
 
 [[rules]]

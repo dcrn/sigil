@@ -2,7 +2,7 @@ id = "get-contract"
 version = "1.0.0"
 name = "Get Contract Tool"
 description = """
-The cdd_get_contract tool retrieves a single contract by id with full detail. When \
+The sigil_get_contract tool retrieves a single contract by id with full detail. When \
 retrieve_file_contents is true, it also includes the file contents of all referenced files (from \
 files and rules[].files). This is the "give me full context" call \
 that agents use when they need to deeply understand a contract and everything it touches.
@@ -15,7 +15,7 @@ files = ["src/tools/get_contract.rs", "src/tools/loader.rs"]
 
 [trigger]
 type = "mcp-tool-call"
-tool = "cdd_get_contract"
+tool = "sigil_get_contract"
 
 [[rules]]
 id = "return-full-contract"
@@ -41,12 +41,12 @@ constraints = [
 [[rules]]
 id = "require-prior-listing"
 description = """
-Before fetching a contract by id, the tool verifies that cdd_list_contracts or \
-cdd_get_affected_contracts was called in the current session. If not, it returns an \
+Before fetching a contract by id, the tool verifies that sigil_list_contracts or \
+sigil_get_affected_contracts was called in the current session. If not, it returns an \
 error instructing the caller to list contracts first.
 """
 constraints = [
-    "The error must instruct the caller to call cdd_list_contracts or cdd_get_affected_contracts before retrying",
+    "The error must instruct the caller to call sigil_list_contracts or sigil_get_affected_contracts before retrying",
 ]
 
 [[rules]]

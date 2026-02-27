@@ -1,10 +1,10 @@
-# Contract Driven Development (CDD)
+# Sigil
 
-CDD is a development methodology and toolset for AI-driven software development. It solves a specific problem: when an AI agent starts working on an existing codebase, it doesn't know what it can't break. Specs tell agents what to build. Contracts tell agents what must remain true.
+Sigil is a development methodology and toolset for AI-driven software development. It solves a specific problem: when an AI agent starts working on an existing codebase, it doesn't know what it can't break. Specs tell agents what to build. Contracts tell agents what must remain true.
 
 A **contract** is a TOML file that describes a rule the system must uphold. Contracts range from highly precise (with file references, constraints, and domain context) to intentionally vague ("all API requests must be authenticated via GitHub OAuth"). The agent interprets the contract based on how much detail is provided and fills in the gaps using its understanding of the codebase.
 
-CDD consists of two components:
+Sigil consists of two components:
 
 - **A contract document format** with a fixed, documented TOML structure
 - **An MCP server** that exposes contracts to AI agents for discovery, context loading, conflict surfacing, and lifecycle management
@@ -21,7 +21,7 @@ This boundary is strict. The MCP server will never tell the agent "this is a con
 
 ## Quick Start
 
-1. Create a `cdd.config.toml` in your project root:
+1. Create a `sigil.config.toml` in your project root:
 
 ```toml
 contracts_dir = "contracts/"
@@ -86,7 +86,7 @@ Freeform table. `type` is the only conventionally used key. Everything else is d
 
 ### `[[changelog]]`
 
-Tool-managed via `cdd_update_contract`.
+Tool-managed via `sigil_update_contract`.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -192,25 +192,25 @@ The MCP server is the sole programmatic interface to the contract system. It exp
 
 | Tool | Purpose |
 |------|---------|
-| `cdd_list_contracts` | List all contracts with summary info. Starting point for planning. |
-| `cdd_get_contract` | Retrieve a single contract with full detail. Optionally resolves file refs. |
-| `cdd_get_affected_contracts` | Given file paths, return all contracts that care about those files. |
-| `cdd_create_contract` | Create a new contract file with validation. |
-| `cdd_update_contract` | Update an existing contract. Returns a diff. Supports `changelog_message`. |
-| `cdd_delete_contract` | Delete a contract file. |
-| `cdd_validate_contract` | Validate a single contract: schema compliance, missing files, structural correctness. |
-| `cdd_validate_all_contracts` | Validate all contracts. Designed for CI pipelines. |
-| `cdd_review_changeset` | Bundle affected contracts with full context (content and file contents) for agent review. |
+| `sigil_list_contracts` | List all contracts with summary info. Starting point for planning. |
+| `sigil_get_contract` | Retrieve a single contract with full detail. Optionally resolves file refs. |
+| `sigil_get_affected_contracts` | Given file paths, return all contracts that care about those files. |
+| `sigil_create_contract` | Create a new contract file with validation. |
+| `sigil_update_contract` | Update an existing contract. Returns a diff. Supports `changelog_message`. |
+| `sigil_delete_contract` | Delete a contract file. |
+| `sigil_validate_contract` | Validate a single contract: schema compliance, missing files, structural correctness. |
+| `sigil_validate_all_contracts` | Validate all contracts. Designed for CI pipelines. |
+| `sigil_review_changeset` | Bundle affected contracts with full context (content and file contents) for agent review. |
 
 See the [contracts](contracts/) directory for detailed behavioral contracts for each tool.
 
 ## CI/CD Integration
 
-CDD enforcement in CI has two layers:
+Sigil enforcement in CI has two layers:
 
 ### Layer 1: Structural Checks (No AI, Fast, Blocking)
 
-Deterministic checks that run on every push. Uses `cdd_validate_all_contracts` internally.
+Deterministic checks that run on every push. Uses `sigil_validate_all_contracts` internally.
 
 - Broken refs (contract references a file that doesn't exist)
 - Schema validation errors
@@ -222,7 +222,7 @@ Deterministic checks that run on every push. Uses `cdd_validate_all_contracts` i
 An AI agent reviews the changeset against affected contracts:
 
 1. Determine which files changed
-2. Get affected contracts with resolved refs via `cdd_review_changeset`
+2. Get affected contracts with resolved refs via `sigil_review_changeset`
 3. Agent evaluates each contract against the diff
 4. Verdict per contract: `pass`, `fail`, or `needs_human_review`
 
@@ -232,39 +232,39 @@ An AI agent reviews the changeset against affected contracts:
 - `should` contracts produce PR warnings but don't block
 - `prefer` contracts are informational only
 
-Overrides are available via PR comments: `cdd-override: <contract-id> -- "reason"`.
+Overrides are available via PR comments: `sigil-override: <contract-id> -- "reason"`.
 
 ## Agent Workflow
 
 ### Planning
 
 1. Receive a task
-2. `cdd_list_contracts` to see the contract landscape
+2. `sigil_list_contracts` to see the contract landscape
 3. Identify files to modify
-4. `cdd_get_affected_contracts` with those files
-5. `cdd_get_contract` with `retrieve_file_contents: true` for each affected contract
+4. `sigil_get_affected_contracts` with those files
+5. `sigil_get_contract` with `retrieve_file_contents: true` for each affected contract
 6. Incorporate constraints into the plan
 7. Flag violations to the human before proceeding
 
 ### Implementation
 
 1. Write code respecting contract constraints
-2. Propose new contracts for new rules via `cdd_create_contract`
+2. Propose new contracts for new rules via `sigil_create_contract`
 
 ### Review
 
-1. `cdd_validate_all_contracts` to check for missing files, schema errors, and structural issues
+1. `sigil_validate_all_contracts` to check for missing files, schema errors, and structural issues
 2. Human reviews contract changes alongside code in the normal PR process
 
 ## Project Structure
 
 ```
-cdd/
+sigil/
   schema/
     contract.schema.json    # JSON Schema for contract validation
-  contracts/                # Contract files (we dogfood CDD here)
+  contracts/                # Contract files (dogfooded)
     *.contract.toml
-  cdd.config.toml           # CDD configuration for this project
+  sigil.config.toml           # Sigil configuration for this project
   README.md
 ```
 

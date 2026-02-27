@@ -2,7 +2,7 @@ id = "validate-contract"
 version = "1.0.0"
 name = "Validate Contract Tool"
 description = """
-The cdd_validate_contract tool validates a single contract: checks schema compliance, \
+The sigil_validate_contract tool validates a single contract: checks schema compliance, \
 missing files (files referenced but not on disk), and structural correctness (e.g. unique \
 rule ids). Returns a pass/fail result with categorized errors and warnings.
 """
@@ -18,7 +18,7 @@ files = [
 
 [trigger]
 type = "mcp-tool-call"
-tool = "cdd_validate_contract"
+tool = "sigil_validate_contract"
 
 [[rules]]
 id = "report-missing-files"

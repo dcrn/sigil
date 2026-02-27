@@ -27,7 +27,7 @@ constraints = [
 
 [[rules]]
 id = "enforce-on-create"
-description = "When cdd_create_contract writes a file, the filename is derived from the id field."
+description = "When sigil_create_contract writes a file, the filename is derived from the id field."
 constraints = [
     "The caller cannot specify a custom filename",
     "The filename must be exactly {id}.contract.toml",
@@ -35,7 +35,7 @@ constraints = [
 
 [[rules]]
 id = "enforce-on-update"
-description = "When cdd_update_contract changes a contract's id, the file is renamed to match the new id."
+description = "When sigil_update_contract changes a contract's id, the file is renamed to match the new id."
 constraints = [
     "The old file must be removed",
     "The new file must use the new id",

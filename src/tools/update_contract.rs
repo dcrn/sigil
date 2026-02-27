@@ -24,8 +24,8 @@ struct Response {
     warnings: Vec<String>,
 }
 
-pub async fn handle(server: &super::CddServer, params: Params) -> String {
-    if let Err(e) = server.require_read("cdd_update_contract", &params.contract_id) {
+pub async fn handle(server: &super::SigilServer, params: Params) -> String {
+    if let Err(e) = server.require_read("sigil_update_contract", &params.contract_id) {
         return e;
     }
 
@@ -36,7 +36,7 @@ pub async fn handle(server: &super::CddServer, params: Params) -> String {
         Ok(s) => s,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
             return super::error_response(format!(
-                "Contract '{}' not found. Use cdd_create_contract to create it.",
+                "Contract '{}' not found. Use sigil_create_contract to create it.",
                 params.contract_id
             ));
         }
@@ -65,7 +65,7 @@ pub async fn handle(server: &super::CddServer, params: Params) -> String {
             .and_then(|v| v.as_str())
             .unwrap_or("0.0.0")
             .to_string();
-        let today = chrono_today();
+        let today = chrono::Local::now().date_naive().to_string();
         let entry = serde_json::json!({
             "version": version,
             "date": today,
@@ -160,29 +160,3 @@ pub async fn handle(server: &super::CddServer, params: Params) -> String {
     serde_json::to_string(&Response { path: new_path, diff, warnings }).unwrap()
 }
 
-fn chrono_today() -> String {
-    // Use system time to get today's date in ISO 8601 format
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
-    let days = now / 86400;
-    // Simple date calculation from epoch days
-    let (year, month, day) = epoch_days_to_date(days as i64);
-    format!("{year:04}-{month:02}-{day:02}")
-}
-
-fn epoch_days_to_date(days: i64) -> (i64, u32, u32) {
-    // Algorithm from Howard Hinnant's chrono-compatible date library
-    let z = days + 719468;
-    let era = if z >= 0 { z } else { z - 146096 } / 146097;
-    let doe = (z - era * 146097) as u32;
-    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    let y = yoe as i64 + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let d = doy - (153 * mp + 2) / 5 + 1;
-    let m = if mp < 10 { mp + 3 } else { mp - 9 };
-    let y = if m <= 2 { y + 1 } else { y };
-    (y, m, d)
-}

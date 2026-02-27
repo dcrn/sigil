@@ -4,7 +4,7 @@ mod tools;
 
 use anyhow::Result;
 use rmcp::ServiceExt;
-use tools::CddServer;
+use tools::SigilServer;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -19,7 +19,7 @@ async fn main() -> Result<()> {
 
     let cfg = config::Config::load()?;
     let transport = (tokio::io::stdin(), tokio::io::stdout());
-    let service = CddServer::new(cfg).serve(transport).await?;
+    let service = SigilServer::new(cfg).serve(transport).await?;
     service.waiting().await?;
     Ok(())
 }

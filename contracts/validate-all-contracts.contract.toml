@@ -2,7 +2,7 @@ id = "validate-all-contracts"
 version = "1.0.0"
 name = "Validate All Contracts Tool"
 description = """
-The cdd_validate_all_contracts tool runs fast, deterministic checks on the contract system \
+The sigil_validate_all_contracts tool runs fast, deterministic checks on the contract system \
 that require no AI interpretation. It is designed for CI pipelines where speed and cost \
 matter. It checks for missing files, schema validation errors, duplicate rule ids, and \
 filename-id consistency. The result is a pass/fail boolean with categorized lists of \
@@ -20,7 +20,7 @@ files = [
 
 [trigger]
 type = "mcp-tool-call"
-tool = "cdd_validate_all_contracts"
+tool = "sigil_validate_all_contracts"
 
 [[rules]]
 id = "check-missing-files"
@@ -33,7 +33,7 @@ constraints = [
 
 [[rules]]
 id = "check-schema-validation"
-description = "Detects contracts that do not conform to the CDD contract schema."
+description = "Detects contracts that do not conform to the Sigil contract schema."
 files = ["schema/contract.schema.json"]
 constraints = [
     "Schema violations are always errors",

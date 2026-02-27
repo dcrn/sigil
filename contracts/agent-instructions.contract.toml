@@ -2,7 +2,7 @@ id = "agent-instructions"
 version = "1.0.0"
 name = "Agent Instructions on Connection"
 description = """
-When an agent connects to the CDD MCP server, the server must deliver methodology instructions \
+When an agent connects to the Sigil MCP server, the server must deliver methodology instructions \
 that tell the agent how to work with contracts. The instructions must cover the agent's \
 responsibilities, the required workflow (discover contracts before coding, check affected \
 contracts, respect constraints, propose new contracts), contract priorities, \
@@ -44,10 +44,10 @@ code, respect constraints while writing code, and check health after writing cod
 """
 files = ["docs/agent-instructions.md"]
 constraints = [
-    "Must include the specific tool calls for each phase (cdd_list_contracts, cdd_get_affected_contracts, cdd_get_contract, cdd_validate_all_contracts)",
+    "Must include the specific tool calls for each phase (sigil_list_contracts, sigil_get_affected_contracts, sigil_get_contract, sigil_validate_all_contracts)",
     "Must instruct the agent to stop and flag violations rather than silently proceeding",
-    "Must state that cdd_get_contract requires a prior cdd_list_contracts or cdd_get_affected_contracts call in the current session",
-    "Must state that cdd_update_contract and cdd_delete_contract require a prior cdd_get_contract call for the same contract_id in the current session",
+    "Must state that sigil_get_contract requires a prior sigil_list_contracts or sigil_get_affected_contracts call in the current session",
+    "Must state that sigil_update_contract and sigil_delete_contract require a prior sigil_get_contract call for the same contract_id in the current session",
 ]
 
 [[rules]]

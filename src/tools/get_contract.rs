@@ -27,8 +27,8 @@ enum FileContent {
     Error { message: String },
 }
 
-pub async fn handle(server: &super::CddServer, params: Params) -> String {
-    if let Err(e) = server.require_listed("cdd_get_contract", &params.contract_id) {
+pub async fn handle(server: &super::SigilServer, params: Params) -> String {
+    if let Err(e) = server.require_listed("sigil_get_contract", &params.contract_id) {
         return e;
     }
 

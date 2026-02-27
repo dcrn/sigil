@@ -9,7 +9,7 @@ struct Response {
     notes: Option<String>,
 }
 
-pub async fn handle(server: &super::CddServer, _params: Params) -> String {
+pub async fn handle(server: &super::SigilServer, _params: Params) -> String {
     serde_json::to_string(&Response {
         notes: server.config.notes.clone(),
     })
@@ -20,10 +20,10 @@ pub async fn handle(server: &super::CddServer, _params: Params) -> String {
 mod tests {
     use super::*;
     use crate::config::Config;
-    use crate::tools::CddServer;
+    use crate::tools::SigilServer;
 
-    fn server_with_notes(notes: Option<&str>) -> CddServer {
-        CddServer::new(Config {
+    fn server_with_notes(notes: Option<&str>) -> SigilServer {
+        SigilServer::new(Config {
             notes: notes.map(str::to_string),
             ..Config::default()
         })

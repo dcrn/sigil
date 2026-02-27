@@ -2,7 +2,7 @@ id = "config-loading"
 version = "1.0.0"
 name = "Configuration Loading"
 description = """
-The MCP server reads its configuration from a cdd.config.toml file in the project root. \
+The MCP server reads its configuration from a sigil.config.toml file in the project root. \
 This file specifies the contracts directory path. If the config file is missing, the \
 server uses sensible defaults (contracts_dir: "contracts/"). If the config file exists \
 but is malformed, the server reports a clear error \
@@ -12,15 +12,15 @@ priority = "must"
 status = "active"
 domain = "core"
 tags = ["config", "startup"]
-files = ["cdd.config.toml", "src/config.rs"]
+files = ["sigil.config.toml", "src/config.rs"]
 
 [[rules]]
 id = "load-from-file"
 description = """
-On startup, the server reads cdd.config.toml from the project root and uses its values \
+On startup, the server reads sigil.config.toml from the project root and uses its values \
 for contracts_dir.
 """
-files = ["cdd.config.toml"]
+files = ["sigil.config.toml"]
 constraints = [
     "contracts_dir must be treated as relative to the project root",
 ]
@@ -28,7 +28,7 @@ constraints = [
 [[rules]]
 id = "defaults-when-missing"
 description = """
-If cdd.config.toml does not exist, the server starts with default configuration values \
+If sigil.config.toml does not exist, the server starts with default configuration values \
 rather than failing.
 """
 constraints = [
@@ -38,7 +38,7 @@ constraints = [
 [[rules]]
 id = "error-on-malformed"
 description = """
-If cdd.config.toml exists but contains invalid TOML or unrecognized fields, the server \
+If sigil.config.toml exists but contains invalid TOML or unrecognized fields, the server \
 reports a clear error.
 """
 constraints = [

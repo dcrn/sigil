@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cdd.dev/schema/contract.schema.json",
-  "title": "CDD Contract",
-  "description": "Schema for Contract Driven Development contract files.",
+  "$id": "https://github.com/dcrn/sigil/schema/contract.schema.json",
+  "title": "Sigil Contract",
+  "description": "Schema for Sigil contract files.",
   "type": "object",
   "required": ["id", "version", "name", "description"],
   "additionalProperties": true,

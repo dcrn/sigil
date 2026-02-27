@@ -2,7 +2,7 @@ id = "list-contracts"
 version = "1.0.0"
 name = "List Contracts Tool"
 description = """
-The cdd_list_contracts tool returns summary information for all contracts in the contracts \
+The sigil_list_contracts tool returns summary information for all contracts in the contracts \
 directory. It supports optional filtering by domain and tags. This is the starting point \
 for any planning session -- agents call it to understand the contract landscape before \
 making changes. The response must be concise enough to fit in an agent's context window \
@@ -17,7 +17,7 @@ files = ["src/tools/list_contracts.rs", "src/tools/loader.rs"]
 
 [trigger]
 type = "mcp-tool-call"
-tool = "cdd_list_contracts"
+tool = "sigil_list_contracts"
 
 [[rules]]
 id = "return-all-summaries"

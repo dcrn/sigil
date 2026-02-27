@@ -2,7 +2,7 @@ id = "contract-schema-validation"
 version = "1.0.0"
 name = "Contract Schema Validation"
 description = """
-All contract TOML files must conform to the CDD contract schema defined in \
+All contract TOML files must conform to the Sigil contract schema defined in \
 schema/contract.schema.json. The MCP server validates contracts on load, on creation, \
 and on update. Validation errors are reported with enough detail for the caller to fix \
 the problem (field path, expected type, actual value). Contracts that fail validation \
@@ -35,7 +35,7 @@ constraints = [
 [[rules]]
 id = "validate-on-write"
 description = """
-When cdd_create_contract or cdd_update_contract is called, the resulting contract is \
+When sigil_create_contract or sigil_update_contract is called, the resulting contract is \
 validated before being written to disk. If validation fails, the file is not written \
 and the errors are returned.
 """
@@ -48,7 +48,7 @@ constraints = [
 [[rules]]
 id = "report-in-health"
 description = """
-cdd_get_contract_health includes a validation_errors list containing all contracts that \
+sigil_get_contract_health includes a validation_errors list containing all contracts that \
 fail schema validation, with details about what is wrong.
 """
 constraints = [
